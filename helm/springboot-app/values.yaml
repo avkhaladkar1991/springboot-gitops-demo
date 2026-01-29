@@ -1,0 +1,5 @@
+image:
+  repository: akshaykhaladkar/springboot-gitops-demo
+  tag: "v1.1"
+  pullPolicy: Always
+
