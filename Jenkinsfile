@@ -1,6 +1,10 @@
 pipeline {
   agent any
 
+  tools {
+    maven 'maven-3'   // <-- MUST match the Maven name in Jenkins → Tools
+  }
+
   environment {
     IMAGE_NAME = "avkhaladkar1991/springboot-gitops-demo"
     IMAGE_TAG  = "${BUILD_NUMBER}"
@@ -40,7 +44,7 @@ pipeline {
           passwordVariable: 'DOCKER_PASS'
         )]) {
           sh """
-            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
             docker push ${IMAGE_NAME}:${IMAGE_TAG}
           """
         }
@@ -74,4 +78,3 @@ pipeline {
     }
   }
 }
-
