@@ -14,7 +14,7 @@ pipeline {
 
     stage('Checkout') {
       steps {
-        git credentialsId: 'github-creds',
+        git credentialsId: 'github-pat',
             url: 'https://github.com/avkhaladkar1991/springboot-gitops-demo.git',
             branch: 'main'
       }
@@ -62,17 +62,19 @@ pipeline {
     stage('Commit & Push Helm Change') {
       steps {
         withCredentials([usernamePassword(
-          credentialsId: 'github-creds',
+          credentialsId: 'github-pat',
           usernameVariable: 'GIT_USER',
           passwordVariable: 'GIT_TOKEN'
         )]) {
           sh '''
             git config user.email "jenkins@ci.com"
             git config user.name "jenkins"
-            git add helm/springboot-app/values.yaml
-            git commit -m "CI: update image tag ${IMAGE_TAG}" || true
-            git push https://${GIT_USER}:${GIT_TOKEN}@github.com/avkhaladkar1991/springboot-gitops-demo.git
+            git commit -am "CI: update image tag ${IMAGE_TAG}" || true
           '''
+          // 🔑 Jenkins Git plugin handles the push
+          git credentialsId: 'github-pat',
+              url: 'https://github.com/avkhaladkar1991/springboot-gitops-demo.git',
+              branch: 'main'
         }
       }
     }
