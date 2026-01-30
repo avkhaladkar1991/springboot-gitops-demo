@@ -14,7 +14,7 @@ pipeline {
 
     stage('Checkout') {
       steps {
-        git credentialsId: 'github-pat',
+        git credentialsId: 'github-creds',
             url: 'https://github.com/avkhaladkar1991/springboot-gitops-demo.git',
             branch: 'main'
       }
