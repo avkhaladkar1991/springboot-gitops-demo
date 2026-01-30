@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   tools {
-    maven 'maven-3'   // <-- MUST match the Maven name in Jenkins → Tools
+    maven 'maven-3'
   }
 
   environment {
@@ -43,19 +43,19 @@ pipeline {
           usernameVariable: 'DOCKER_USER',
           passwordVariable: 'DOCKER_PASS'
         )]) {
-          sh """
+          sh '''
             echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
             docker push ${IMAGE_NAME}:${IMAGE_TAG}
-          """
+          '''
         }
       }
     }
 
     stage('Update Helm values') {
       steps {
-        sh """
-          sed -i '' 's/tag:.*/tag: ${IMAGE_TAG}/' helm/springboot-app/values.yaml
-        """
+        sh '''
+          sed -i '' 's/tag:.*/tag: '"${IMAGE_TAG}"'/' helm/springboot-app/values.yaml
+        '''
       }
     }
 
@@ -64,15 +64,15 @@ pipeline {
         withCredentials([usernamePassword(
           credentialsId: 'github-creds',
           usernameVariable: 'GIT_USER',
-          passwordVariable: 'GIT_PASS'
+          passwordVariable: 'GIT_TOKEN'
         )]) {
-          sh """
+          sh '''
             git config user.email "jenkins@ci.com"
             git config user.name "jenkins"
             git add helm/springboot-app/values.yaml
-            git commit -m "CI: update image tag to ${IMAGE_TAG}" || true
-            git push https://${GIT_USER}:${GIT_PASS}@github.com/avkhaladkar1991/springboot-gitops-demo.git
-          """
+            git commit -m "CI: update image tag ${IMAGE_TAG}" || true
+            git push https://${GIT_USER}:${GIT_TOKEN}@github.com/avkhaladkar1991/springboot-gitops-demo.git
+          '''
         }
       }
     }
