@@ -62,7 +62,7 @@ pipeline {
     stage('Commit & Push Helm Change') {
       steps {
         withCredentials([usernamePassword(
-          credentialsId: 'github-pat',
+          credentialsId: 'github-creds',
           usernameVariable: 'GIT_USER',
           passwordVariable: 'GIT_TOKEN'
         )]) {
@@ -72,7 +72,7 @@ pipeline {
             git commit -am "CI: update image tag ${IMAGE_TAG}" || true
           '''
           // 🔑 Jenkins Git plugin handles the push
-          git credentialsId: 'github-pat',
+          git credentialsId: 'github-creds',
               url: 'https://github.com/avkhaladkar1991/springboot-gitops-demo.git',
               branch: 'main'
         }
