@@ -1,5 +1,5 @@
 image:
-  repository: akshaykhaladkar/springboot-gitops-demo
+  repository: avkhaladkar1991/springboot-gitops-demo
   tag: "v1.1"
   
 replicaCount: 1
