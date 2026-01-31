@@ -1,35 +1,41 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "springboot-app.fullname" . }}
+  name: springboot-app
   labels:
-    app: {{ include "springboot-app.name" . }}
+    app: springboot-app
 spec:
   replicas: {{ .Values.replicaCount }}
+
   strategy:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
+
   selector:
     matchLabels:
-      app: {{ include "springboot-app.name" . }}
+      app: springboot-app
+
   template:
     metadata:
       labels:
-        app: {{ include "springboot-app.name" . }}
+        app: springboot-app
+
     spec:
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
+
       containers:
         - name: springboot-app
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: Always
+
           ports:
             - containerPort: 8080
 
-          # ✅ Resource management (PRODUCTION MUST)
+          # ✅ Resource management (production-grade)
           resources:
             requests:
               cpu: "100m"
@@ -38,7 +44,7 @@ spec:
               cpu: "500m"
               memory: "512Mi"
 
-          # ✅ Health checks
+          # ✅ Readiness probe (traffic control)
           readinessProbe:
             httpGet:
               path: /hello
@@ -47,6 +53,7 @@ spec:
             periodSeconds: 5
             failureThreshold: 3
 
+          # ✅ Liveness probe (self-healing)
           livenessProbe:
             httpGet:
               path: /hello
@@ -55,7 +62,14 @@ spec:
             periodSeconds: 10
             failureThreshold: 3
 
-          # ✅ Environment (safe defaults)
+          # ✅ Config & Secrets (no hardcoding)
+          envFrom:
+            - configMapRef:
+                name: springboot-config
+
           env:
-            - name: SPRING_PROFILES_ACTIVE
-              value: "prod"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: password
