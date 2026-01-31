@@ -1,20 +1,61 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: springboot-app
+  name: {{ include "springboot-app.fullname" . }}
+  labels:
+    app: {{ include "springboot-app.name" . }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
-      app: springboot-app
+      app: {{ include "springboot-app.name" . }}
   template:
     metadata:
       labels:
-        app: springboot-app
+        app: {{ include "springboot-app.name" . }}
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
       containers:
         - name: springboot-app
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
 
+          # ✅ Resource management (PRODUCTION MUST)
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+          # ✅ Health checks
+          readinessProbe:
+            httpGet:
+              path: /hello
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /hello
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+
+          # ✅ Environment (safe defaults)
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
